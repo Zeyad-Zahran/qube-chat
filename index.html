@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>qube Chat </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    body { 
+      background: #121212; 
+      color: #00ff00; 
+      font-family: 'Courier New', monospace; 
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 {
+      text-align: center;
+      padding: 1rem;
+      background-color: #2f2f2f;
+      margin: 0;
+      border-bottom: 1px solid #00ff00;
+      animation: flicker 2s infinite;
+    }
+    #authContainer, #chatContainer, #conversationsContainer {
+      width: 90%;
+      max-width: 1200px;
+      margin: 1rem auto;
+      padding: 1rem;
+      border: 1px solid #00ff00;
+      background-color: #1a1a1a;
+      border-radius: 5px;
+      transition: opacity 0.3s ease;
+    }
+    #messages { 
+      padding: 0.5rem; 
+      height: 50vh;
+      max-height: 500px;
+      overflow-y: auto;
+      margin: 1rem 0;
+      background-color: #1a1a1a;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+    }
+    .message {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 5px;
+      background-color: #333;
+      color: white;
+      position: relative;
+      word-break: break-word;
+    }
+    .myMessage {
+      background-color: #399939;
+      text-align: left;
+      color: black;
+      margin-left: 2rem;
+    }
+    .otherMessage {
+      background-color: #444;
+      text-align: right;
+      margin-right: 2rem;
+    }
+    input, button, select { 
+      background: #121212; 
+      color: #00ff00; 
+      border: 1px solid #00ff00; 
+      padding: 0.5rem; 
+      margin: 0.5rem 0;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-family: 'Courier New', monospace;
+    }
+    button {
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+      color: #00ff00;
+    }
+    button:hover {
+      background-color: #00aa00;
+      color: #121212;
+      transform: scale(1.05);
+    }
+    .inputBox {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .inputBox input {
+      flex-grow: 1;
+    }
+    #userStatus {
+      text-align: left;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .auth-tabs .nav-link {
+      background-color: #2f2f2f;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+      margin-left: 0.3rem;
+    }
+    .auth-tabs .nav-link.active {
+      background-color: #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+      color: #00ff00;
+    }
+    .error-message {
+      color: #ff5555;
+      margin: 0.3rem 0;
+      font-size: 0.9rem;
+    }
+    .success-message {
+      color: #55ff55;
+      margin: 0.3rem 0;
+      font-size: 0.9rem;
+    }
+    .hidden {
+      display: none;
+      opacity: 0;
+    }
+    .conversation {
+      padding: 0.5rem;
+      margin: 0.3rem 0;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+      color: #00ff00;
+    }
+    .conversation:hover {
+      background-color: #2f2f2f;
+    }
+    .conversation.active {
+      background-color: #399939;
+      color: #121212;
+    }
+    .conversation-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .conversation-last-message {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+    .unread-count {
+      background-color: #ff5555;
+      color: white;
+      border-radius: 50%;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.8rem;
+    }
+    .message-status {
+      font-size: 0.7rem;
+      margin-right: 0.3rem;
+    }
+    .online-status {
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      margin-left: 0.3rem;
+    }
+    .online {
+      background-color: #55ff55;
+    }
+    .offline {
+      background-color: #ff5555;
+    }
+    .nav-tabs .nav-link {
+      background-color: #121212;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      margin-left: 0.3rem;
+    }
+    .nav-tabs .nav-link.active {
+      background-color: #00ff00;
+      color: #121212;
+    }
+    #typingIndicator {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+    .auth-form {
+      padding: 1rem;
+    }
+    .auth-form input {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .auth-form button {
+      width: 100%;
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    @media (max-width: 768px) {
+      #authContainer, #chatContainer, #conversationsContainer {
+        width: 95%;
+        padding: 0.5rem;
+      }
+      #messages {
+        height: 60vh;
+      }
+      .inputBox {
+        flex-direction: column;
+      }
+      .inputBox input, .inputBox button {
+        width: 100%;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+    @media (max-width: 576px) {
+      .message {
+        font-size: 0.9rem;
+      }
+      .conversation {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .unread-count {
+        margin-top: 0.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>qube Chat</h1>
+  <div id="userStatus">
+    <span id="statusText">Not logged in</span>
+    <button id="logoutBtn" class="btn hidden text-light" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+
+  <div id="authContainer">
+    <ul class="nav nav-tabs auth-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="#" onclick="showAuthForm('login'); return false;">Login</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="showAuthForm('register'); return false;">Register</a>
+      </li>
+    </ul>
+    
+    <div id="loginForm" class="auth-form">
+      <input type="email" class="form-control" id="loginEmail" placeholder="Email">
+      <input type="password" class="form-control" id="loginPassword" placeholder="Password">
+      <button class="btn text-light" onclick="login()">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+      <div id="loginError" class="error-message"></div>
+    </div>
+    
+    <div id="registerForm" class="auth-form hidden">
+      <input type="text" class="form-control" id="registerUsername" placeholder="Username">
+      <input type="email" class="form-control" id="registerEmail" placeholder="Email">
+      <input type="password" class="form-control" id="registerPassword" placeholder="Password">
+      <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Confirm Password">
+      <button class="btn text-light" onclick="register()">
+        <i class="fas fa-user-plus"></i> Register
+      </button>
+      <div id="registerError" class="error-message"></div>
+      <div id="registerSuccess" class="success-message"></div>
+    </div>
+  </div>
+
+  <div id="conversationsContainer" class="hidden">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" id="conversationsTab" href="#" onclick="showTab('conversations'); return false;">
+          <i class="fas fa-comments"></i> Conversations
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="usersTab" href="#" onclick="showTab('users'); return false;">
+          <i class="fas fa-users"></i> Users
+        </a>
+      </li>
+    </ul>
+    
+    <div id="conversationsList"></div>
+    
+    <div id="usersList" class="hidden">
+      <input type="text" class="form-control" id="searchUser" placeholder="Search for users..." oninput="searchUsers()">
+      <div id="searchResults"></div>
+    </div>
+  </div>
+
+  <div id="chatContainer" class="hidden">
+    <button class="btn text-light" id="backToConversations" onclick="showConversations()">
+      <i class="fas fa-arrow-left"></i> Back to conversations
+    </button>
+    <div id="chatHeader">
+      <h2 id="chatWithUser"></h2>
+      <div id="userOnlineStatus"></div>
+      <div id="typingIndicator"></div>
+    </div>
+    <div id="messages"></div>
+    <button class="btn text-light" onclick="loadMoreMessages()">
+      <i class="fas fa-sync"></i> Load More
+    </button>
+    <div class="inputBox">
+      <input type="text" class="form-control" id="msgInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+      <button class="btn text-light" onclick="sendMessage()">
+        <i class="fas fa-paper-plane"></i> Send
+      </button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2hZJ0rWOqIIcScQQK9kmMMFEA_h96zWs",
+      authDomain: "queb-bub-chat.firebaseapp.com",
+      databaseURL: "https://queb-bub-chat-default-rtdb.firebaseio.com/",
+      projectId: "queb-bub-chat",
+      storageBucket: "queb-bub-chat.appspot.com",
+      messagingSenderId: "72434646068",
+      appId: "1:72434646068:web:cc48f997937d7d37c3de61",
+      measurementId: "G-GQFJMNP3N6"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    
+    let currentUser = null;
+    let usersRef = db.ref("users");
+    let conversationsRef = db.ref("conversations");
+    let userStatusRef = db.ref("status");
+    let currentChatId = null;
+    let currentRecipient = null;
+    let userPresenceRef = null;
+    let lastMessageKey = null;
+    let typingTimeout;
+
+    // Check auth state
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+        setupPresence();
+        updateUIForLoggedInUser();
+      } else {
+        if (userPresenceRef) {
+          userPresenceRef.off();
+        }
+        currentUser = null;
+        updateUIForLoggedOutUser();
+      }
+    });
+
+    function setupPresence() {
+      userPresenceRef = db.ref('.info/connected');
+      const userStatusRef = db.ref('status/' + currentUser.uid);
+      
+      userPresenceRef.on('value', (snapshot) => {
+        if (snapshot.val()) {
+          userStatusRef.onDisconnect().set({
+            status: 'offline',
+            lastChanged: firebase.database.ServerValue.TIMESTAMP
+          });
+          
+          userStatusRef.set({
+            status: 'online',
+            lastChanged: firebase.database.ServerValue.TIMESTAMP
+          });
+        }
+      });
+    }
+
+    function updateUIForLoggedInUser() {
+      document.getElementById("authContainer").classList.add("hidden");
+      document.getElementById("conversationsContainer").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("statusText").textContent = `Logged in as ${currentUser.displayName || currentUser.email}`;
+      
+      usersRef.child(currentUser.uid).once('value', (snapshot) => {
+        if (!snapshot.exists()) {
+          usersRef.child(currentUser.uid).set({
+            username: currentUser.displayName || currentUser.email.split('@')[0],
+            email: currentUser.email,
+            lastSeen: firebase.database.ServerValue.TIMESTAMP
+          });
+        }
+      });
+      
+      loadConversations();
+    }
+
+    function updateUIForLoggedOutUser() {
+      document.getElementById("authContainer").classList.remove("hidden");
+      document.getElementById("conversationsContainer").classList.add("hidden");
+      document.getElementById("chatContainer").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("statusText").textContent = "Not logged in";
+    }
+
+    function showAuthForm(formType) {
+      const loginTab = document.querySelector('.auth-tabs .nav-item:nth-child(1) .nav-link');
+      const registerTab = document.querySelector('.auth-tabs .nav-item:nth-child(2) .nav-link');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      
+      if (formType === 'login') {
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+      } else {
+        loginTab.classList.remove('active');
+        registerTab.classList.add('active');
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+      }
+    }
+
+    function showTab(tabName) {
+      const conversationsTab = document.getElementById('conversationsTab');
+      const usersTab = document.getElementById('usersTab');
+      const conversationsList = document.getElementById('conversationsList');
+      const usersList = document.getElementById('usersList');
+      
+      if (tabName === 'conversations') {
+        conversationsTab.classList.add('active');
+        usersTab.classList.remove('active');
+        conversationsList.classList.remove('hidden');
+        usersList.classList.add('hidden');
+      } else {
+        conversationsTab.classList.remove('active');
+        usersTab.classList.add('active');
+        conversationsList.classList.add('hidden');
+        usersList.classList.remove('hidden');
+        searchUsers();
+      }
+    }
+
+    function login() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      const errorElement = document.getElementById("loginError");
+      
+      errorElement.textContent = "";
+      
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // Login successful
+        })
+        .catch((error) => {
+          errorElement.textContent = error.message;
+        });
+    }
+
+    function register() {
+      const username = document.getElementById("registerUsername").value;
+      const email = document.getElementById("registerEmail").value;
+      const password = document.getElementById("registerPassword").value;
+      const confirmPassword = document.getElementById("registerConfirmPassword").value;
+      const errorElement = document.getElementById("registerError");
+      const successElement = document.getElementById("registerSuccess");
+      
+      errorElement.textContent = "";
+      successElement.textContent = "";
+      
+      if (password !== confirmPassword) {
+        errorElement.textContent = "Passwords don't match";
+        return;
+      }
+      
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // Update user profile
+          return userCredential.user.updateProfile({
+            displayName: username
+          }).then(() => {
+            // Save user data to database
+            return usersRef.child(userCredential.user.uid).set({
+              username: username,
+              email: email,
+              lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+          });
+        })
+        .then(() => {
+          successElement.textContent = "Registration successful! You can now login.";
+          document.getElementById("registerForm").reset();
+          showAuthForm('login');
+        })
+        .catch((error) => {
+          errorElement.textContent = error.message;
+        });
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    function loadConversations() {
+      conversationsRef.orderByChild(`participants/${currentUser.uid}`).equalTo(true).on('value', (snapshot) => {
+        const conversations = snapshot.val() || {};
+        const conversationsList = document.getElementById('conversationsList');
+        conversationsList.innerHTML = '';
+        
+        Object.keys(conversations).forEach(conversationId => {
+          const conversation = conversations[conversationId];
+          const otherUserId = Object.keys(conversation.participants).find(uid => uid !== currentUser.uid);
+          
+          if (otherUserId) {
+            usersRef.child(otherUserId).once('value', (userSnapshot) => {
+              const user = userSnapshot.val();
+              const lastMessage = conversation.lastMessage || {};
+              const unreadCount = conversation.unreadCounts && conversation.unreadCounts[currentUser.uid] || 0;
+              
+              const conversationDiv = document.createElement('div');
+              conversationDiv.className = 'conversation';
+              conversationDiv.innerHTML = `
+                <div class="conversation-info">
+                  <strong><i class="fas fa-user"></i> ${user.username}</strong>
+                  <span class="conversation-last-message">${lastMessage.text || 'No messages yet'}</span>
+                </div>
+                ${unreadCount > 0 ? `<span class="unread-count">${unreadCount}</span>` : ''}
+              `;
+              
+              conversationDiv.onclick = () => openChat(conversationId, otherUserId, user.username);
+              
+              conversationsList.appendChild(conversationDiv);
+            });
+          }
+        });
+      });
+    }
+
+    function openChat(conversationId, recipientId, recipientName) {
+      if (currentChatId) {
+        db.ref(`messages/${currentChatId}`).off();
+        db.ref(`conversations/${currentChatId}/typing/${currentRecipient?.id}`).off();
+      }
+      
+      currentChatId = conversationId;
+      currentRecipient = { id: recipientId, name: recipientName };
+      
+      document.getElementById('conversationsContainer').classList.add('hidden');
+      document.getElementById('chatContainer').classList.remove('hidden');
+      document.getElementById('chatWithUser').textContent = `Chat with ${recipientName}`;
+      
+      markMessagesAsRead();
+      loadMessages();
+      setupOnlineStatus(recipientId);
+      setupTypingIndicator();
+    }
+
+    function setupOnlineStatus(userId) {
+      const statusRef = db.ref('status/' + userId);
+      const statusElement = document.getElementById('userOnlineStatus');
+      
+      statusRef.on('value', (snapshot) => {
+        const status = snapshot.val();
+        if (status) {
+          const isOnline = status.status === 'online';
+          const lastSeen = new Date(status.lastChanged).toLocaleString();
+          
+          statusElement.innerHTML = `
+            <span class="online-status ${isOnline ? 'online' : 'offline'}"></span>
+            ${isOnline ? 'Online now' : `Last seen: ${lastSeen}`}
+          `;
+        }
+      });
+    }
+
+    function setupTypingIndicator() {
+      const msgInput = document.getElementById('msgInput');
+      if (msgInput) {
+        msgInput.addEventListener('input', () => {
+          db.ref(`conversations/${currentChatId}/typing/${currentUser.uid}`).set(true);
+          clearTimeout(typingTimeout);
+          typingTimeout = setTimeout(() => {
+            db.ref(`conversations/${currentChatId}/typing/${currentUser.uid}`).set(false);
+          }, 1000);
+        });
+      }
+
+      db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).on('value', (snapshot) => {
+        const isTyping = snapshot.val();
+        document.getElementById('typingIndicator').textContent = isTyping ? `${currentRecipient.name} is typing...` : '';
+      });
+    }
+
+    function showConversations() {
+      document.getElementById('conversationsContainer').classList.remove('hidden');
+      document.getElementById('chatContainer').classList.add('hidden');
+      if (currentChatId) {
+        db.ref(`messages/${currentChatId}`).off();
+        db.ref(`conversations/${currentChatId}/typing/${currentRecipient?.id}`).off();
+      }
+      currentChatId = null;
+      currentRecipient = null;
+    }
+
+    function loadMessages(limit = 50) {
+      document.getElementById('messages').innerHTML = '';
+      
+      db.ref(`messages/${currentChatId}`)
+        .orderByChild('time')
+        .limitToLast(limit)
+        .on('child_added', (snapshot) => {
+          const msg = snapshot.val();
+          displayMessage(msg, snapshot.key);
+          
+          if (msg.userId !== currentUser.uid && !msg.read) {
+            db.ref(`messages/${currentChatId}/${snapshot.key}`).update({ read: true });
+          }
+          lastMessageKey = snapshot.key;
+        });
+    }
+
+    function loadMoreMessages() {
+      if (!lastMessageKey) return;
+      
+      db.ref(`messages/${currentChatId}`)
+        .orderByKey()
+        .endAt(lastMessageKey)
+        .limitToLast(50)
+        .once('value', (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            lastMessageKey = childSnapshot.key;
+            const msg = childSnapshot.val();
+            displayMessage(msg, childSnapshot.key);
+          });
+        });
+    }
+
+    function displayMessage(msg, messageId) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message");
+      
+      const isCurrentUser = currentUser && msg.userId === currentUser.uid;
+      
+      if (isCurrentUser) {
+        msgDiv.classList.add("myMessage");
+      } else {
+        msgDiv.classList.add("otherMessage");
+      }
+      
+      const timestamp = new Date(msg.time).toLocaleString();
+      const readStatus = isCurrentUser ? 
+        (msg.read ? '<span class="message-status">✓✓</span>' : '<span class="message-status">✓</span>') : '';
+      
+      msgDiv.innerHTML = `
+        <strong><i class="fas fa-user"></i> ${msg.username}</strong> (${timestamp}): 
+        ${msg.text}
+        ${readStatus}
+        ${isCurrentUser && (Date.now() - msg.time) < 5 * 60 * 1000 ? 
+          `<button class="btn text-light btn-sm" onclick="editMessage('${messageId}', '${msg.text || ''}')"><i class="fas fa-edit"></i></button>
+           <button class="btn text-light btn-sm" onclick="deleteMessage('${messageId}')"><i class="fas fa-trash"></i></button>` : ''}
+      `;
+      
+      document.getElementById("messages").appendChild(msgDiv);
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    }
+
+    function editMessage(messageId, currentText) {
+      const newText = prompt("Edit message:", currentText);
+      if (newText && newText.trim()) {
+        db.ref(`messages/${currentChatId}/${messageId}`).update({
+          text: newText,
+          edited: true,
+          editedAt: Date.now()
+        });
+      }
+    }
+
+    function deleteMessage(messageId) {
+      if (confirm("Are you sure you want to delete this message?")) {
+        db.ref(`messages/${currentChatId}/${messageId}`).remove();
+      }
+    }
+
+    function sendMessage() {
+      const msgInput = document.getElementById("msgInput");
+      const messageText = msgInput.value.trim();
+      
+      if (!messageText) return;
+      
+      if (!currentUser) {
+        alert("Please login to send messages");
+        return;
+      }
+      
+      if (!currentChatId) {
+        createNewConversation().then(conversationId => {
+          currentChatId = conversationId;
+          sendNewMessage(messageText);
+        });
+      } else {
+        sendNewMessage(messageText);
+      }
+    }
+
+    function createNewConversation() {
+      const newConversationRef = conversationsRef.push();
+      const conversationId = newConversationRef.key;
+      
+      const participants = {};
+      participants[currentUser.uid] = true;
+      participants[currentRecipient.id] = true;
+      
+      return newConversationRef.set({
+        participants: participants,
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        lastMessage: {
+          text: '',
+          time: 0
+        },
+        unreadCounts: {
+          [currentRecipient.id]: 0,
+          [currentUser.uid]: 0
+        }
+      }).then(() => conversationId);
+    }
+
+    function sendNewMessage(messageText) {
+      const message = {
+        userId: currentUser.uid,
+        username: currentUser.displayName || currentUser.email.split('@')[0],
+        text: messageText,
+        time: Date.now(),
+        read: false
+      };
+      
+      db.ref(`messages/${currentChatId}`).push(message);
+      
+      db.ref(`conversations/${currentChatId}/lastMessage`).set({
+        text: messageText,
+        time: Date.now()
+      });
+      
+      db.ref(`conversations/${currentChatId}/unreadCounts/${currentRecipient.id}`)
+        .transaction((current) => (current || 0) + 1);
+      
+      document.getElementById("msgInput").value = "";
+    }
+
+    function markMessagesAsRead() {
+      if (!currentChatId) return;
+      
+      db.ref(`conversations/${currentChatId}/unreadCounts/${currentUser.uid}`).set(0);
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+
+    function searchUsers() {
+      const searchTerm = document.getElementById("searchUser").value.toLowerCase();
+      const resultsContainer = document.getElementById("searchResults");
+      
+      if (!searchTerm) {
+        resultsContainer.innerHTML = "";
+        return;
+      }
+      
+      usersRef.once('value', (snapshot) => {
+        resultsContainer.innerHTML = "";
+        const users = snapshot.val();
+        
+        for (const userId in users) {
+          if (userId !== currentUser.uid && users[userId].username.toLowerCase().includes(searchTerm)) {
+            const userDiv = document.createElement("div");
+            userDiv.classList.add("conversation");
+            userDiv.innerHTML = `
+              <div class="conversation-info">
+                <strong><i class="fas fa-user"></i> ${users[userId].username}</strong>
+                <span class="conversation-last-message">Click to start conversation</span>
+              </div>
+            `;
+            userDiv.onclick = () => startNewConversation(userId, users[userId].username);
+            resultsContainer.appendChild(userDiv);
+          }
+        }
+      });
+    }
+
+    function startNewConversation(userId, username) {
+      currentRecipient = { id: userId, name: username };
+      
+      conversationsRef.orderByChild(`participants/${currentUser.uid}`).equalTo(true).once('value', (snapshot) => {
+        const conversations = snapshot.val() || {};
+        let conversationId = null;
+        
+        for (const convId in conversations) {
+          if (conversations[convId].participants[userId]) {
+            conversationId = convId;
+            break;
+          }
+        }
+        
+        if (conversationId) {
+          openChat(conversationId, userId, username);
+        } else {
+          createNewConversation().then(newConversationId => {
+            openChat(newConversationId, userId, username);
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
