@@ -3,214 +3,503 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>qube Chat </title>
+  <title>qube Chat</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
-    body { 
-      background: #121212; 
-      color: #00ff00; 
-      font-family: 'Courier New', monospace; 
+    :root {
+      --primary-orange: #f97316;
+      --dark-bg: #0f172a;
+      --card-bg: #1e293b;
+      --text-light: #f1f5f9;
+      --accent-gradient: linear-gradient(45deg, #f97316, #fb923c);
+      --hover-orange: #ea580c;
+      --border-color: #334155;
+      --text-dark: #1e293b;
+    }
+
+    body {
+      background: var(--dark-bg);
+      color: var(--text-light);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
+
+    body.light-theme {
+      --dark-bg: #ffffff;
+      --card-bg: #f1f5f9;
+      --text-light: #1e293b;
+      --border-color: #d1d5db;
+      --text-dark: #111827;
+    }
+
+    body.light-theme .message {
+      background: #e5e7eb;
+      color: var(--text-dark);
+    }
+
+    body.light-theme .myMessage {
+      background: linear-gradient(45deg, #3b82f6, #60a5fa);
+      color: #ffffff;
+    }
+
+    body.light-theme #messages {
+      background: #f1f5f9;
+      border: 1px solid #d1d5db;
+    }
+
+    body.light-theme button, body.light-theme .nav-link {
+      color: var(--text-dark);
+    }
+
+    body.light-theme .auth-tabs .nav-link.active,
+    body.light-theme button {
+      color: #ffffff;
+    }
+
     h1 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
       text-align: center;
-      padding: 1rem;
-      background-color: #2f2f2f;
+      padding: 1.5rem;
+      background: linear-gradient(45deg, #f97316, #fb923c, #f97316);
+      background-size: 200% 200%;
       margin: 0;
-      border-bottom: 1px solid #00ff00;
-      animation: flicker 2s infinite;
+      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      animation: gradientShift 5s ease infinite, slideIn 0.5s ease-out;
     }
-    #authContainer, #chatContainer, #conversationsContainer {
+
+    h1::before {
+      content: "\f086";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 1.5rem;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--accent-gradient);
+      border: none;
+      padding: 0.5rem;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: rotate(360deg);
+    }
+
+    #authContainer, #chatContainer, #conversationsContainer, #profileContainer {
       width: 90%;
-      max-width: 1200px;
-      margin: 1rem auto;
-      padding: 1rem;
-      border: 1px solid #00ff00;
-      background-color: #1a1a1a;
-      border-radius: 5px;
-      transition: opacity 0.3s ease;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      animation: fadeInUp 0.5s ease-out;
     }
-    #messages { 
-      padding: 0.5rem; 
-      height: 50vh;
-      max-height: 500px;
+
+    #messages {
+      padding: 1rem;
+      height: 60vh;
+      max-height: 600px;
       overflow-y: auto;
       margin: 1rem 0;
-      background-color: #1a1a1a;
-      border: 1px solid #00ff00;
-      border-radius: 5px;
+      background: #1a2436;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-orange) var(--card-bg);
     }
+
+    body.light-theme #messages {
+      background: #f1f5f9;
+    }
+
+    #messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #messages::-webkit-scrollbar-track {
+      background: var(--card-bg);
+    }
+
+    #messages::-webkit-scrollbar-thumb {
+      background: var(--primary-orange);
+      border-radius: 4px;
+    }
+
     .message {
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      border-radius: 5px;
-      background-color: #333;
-      color: white;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: #2d3b55;
+      color: var(--text-light);
       position: relative;
       word-break: break-word;
+      transition: transform 0.2s ease;
+      animation: slideInMessage 0.3s ease-out;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
+
+    .message:hover {
+      transform: translateY(-2px);
+    }
+
+    .message .message-actions {
+      display: none;
+      gap: 0.5rem;
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      background: var(--card-bg);
+      padding: 0.3rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .message:hover .message-actions {
+      display: flex;
+    }
+
     .myMessage {
-      background-color: #399939;
-      text-align: left;
-      color: black;
+      background: var(--accent-gradient);
+      color: #1e1e1e;
       margin-left: 2rem;
+      border-radius: 12px 12px 2px 12px;
     }
+
     .otherMessage {
-      background-color: #444;
-      text-align: right;
+      background: #2d3b55;
       margin-right: 2rem;
+      border-radius: 12px 12px 12px 2px;
     }
-    input, button, select { 
-      background: #121212; 
-      color: #00ff00; 
-      border: 1px solid #00ff00; 
-      padding: 0.5rem; 
+
+    .quoted-message {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-left: 3px solid var(--primary-orange);
+      font-size: 0.85rem;
+      border-radius: 4px;
+    }
+
+    input, button, select {
+      background: #1e293b;
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
       margin: 0.5rem 0;
-      border-radius: 5px;
+      border-radius: 8px;
       font-size: 1rem;
-      font-family: 'Courier New', monospace;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
     }
+
+    body.light-theme input, body.light-theme button, body.light-theme select {
+      background: #ffffff;
+      color: var(--text-dark);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-orange);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+    }
+
     button {
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.1s;
-      color: #00ff00;
+      background: var(--accent-gradient);
+      color: #ffffff;
+      font-weight: 500;
+      transition: all 0.3s ease;
     }
+
     button:hover {
-      background-color: #00aa00;
-      color: #121212;
-      transform: scale(1.05);
+      background: var(--hover-orange);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
     }
+
     .inputBox {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
       align-items: center;
     }
+
     .inputBox input {
       flex-grow: 1;
     }
+
     #userStatus {
-      text-align: left;
-      padding: 0.5rem;
+      padding: 1rem;
       font-size: 0.9rem;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
+
     .auth-tabs .nav-link {
-      background-color: #2f2f2f;
-      color: #00ff00;
-      border: 1px solid #00ff00;
+      background: #1e293b;
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
       border-bottom: none;
-      border-radius: 5px 5px 0 0;
-      margin-left: 0.3rem;
+      border-radius: 8px 8px 0 0;
+      margin-right: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      transition: all 0.3s ease;
     }
+
     .auth-tabs .nav-link.active {
-      background-color: #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-      color: #00ff00;
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border-bottom: 1px solid transparent;
     }
+
     .error-message {
-      color: #ff5555;
-      margin: 0.3rem 0;
+      color: #f87171;
+      margin: 0.5rem 0;
       font-size: 0.9rem;
+      animation: fadeIn 0.3s ease;
     }
+
     .success-message {
-      color: #55ff55;
-      margin: 0.3rem 0;
+      color: #4ade80;
+      margin: 0.5rem 0;
       font-size: 0.9rem;
+      animation: fadeIn 0.3s ease;
     }
+
     .hidden {
       display: none;
       opacity: 0;
     }
+
     .conversation {
-      padding: 0.5rem;
-      margin: 0.3rem 0;
-      border: 1px solid #00ff00;
-      border-radius: 5px;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
       cursor: pointer;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      transition: background-color 0.2s;
-      color: #00ff00;
+      background: #1e293b;
+      transition: all 0.3s ease;
+      animation: fadeInUp 0.3s ease-out;
     }
+
     .conversation:hover {
-      background-color: #2f2f2f;
+      background: #2d3b55;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
+
     .conversation.active {
-      background-color: #399939;
-      color: #121212;
+      background: var(--accent-gradient);
+      color: #1e1e1e;
     }
+
     .conversation-info {
       display: flex;
       flex-direction: column;
+      flex-grow: 1;
     }
+
     .conversation-last-message {
-      font-size: 0.8rem;
-      color: #aaa;
+      font-size: 0.85rem;
+      color: #94a3b8;
     }
+
     .unread-count {
-      background-color: #ff5555;
-      color: white;
+      background: #f87171;
+      color: #ffffff;
       border-radius: 50%;
-      padding: 0.2rem 0.4rem;
-      font-size: 0.8rem;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
     }
+
     .message-status {
-      font-size: 0.7rem;
-      margin-right: 0.3rem;
+      font-size: 0.75rem;
+      margin-right: 0.5rem;
+      color: #94a3b8;
     }
+
     .online-status {
       display: inline-block;
-      width: 0.5rem;
-      height: 0.5rem;
+      width: 0.6rem;
+      height: 0.6rem;
       border-radius: 50%;
-      margin-left: 0.3rem;
+      margin-left: 0.5rem;
     }
+
     .online {
-      background-color: #55ff55;
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
     }
+
     .offline {
-      background-color: #ff5555;
+      background: #f87171;
     }
+
     .nav-tabs .nav-link {
-      background-color: #121212;
-      color: #00ff00;
-      border: 1px solid #00ff00;
-      margin-left: 0.3rem;
+      background: #1e293b;
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
+      border-radius: 8px 8px 0 0;
+      margin-right: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      transition: all 0.3s ease;
     }
+
     .nav-tabs .nav-link.active {
-      background-color: #00ff00;
-      color: #121212;
+      background: var(--accent-gradient);
+      color: #ffffff;
     }
+
     #typingIndicator {
-      font-size: 0.8rem;
-      color: #aaa;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-style: italic;
+      animation: pulse 1.5s infinite;
     }
+
     .auth-form {
-      padding: 1rem;
+      padding: 1.5rem;
     }
+
     .auth-form input {
       width: 100%;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
     }
+
     .auth-form button {
       width: 100%;
     }
-    @keyframes flicker {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
+
+    .friend-request-btn, .profile-btn {
+      margin-left: 0.75rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      background: #2d3b55;
     }
+
+    .friend-request-btn:hover, .profile-btn:hover {
+      background: var(--hover-orange);
+    }
+
+    .profile-container {
+      padding: 1.5rem;
+    }
+
+    .profile-container h2 {
+      margin-bottom: 1.5rem;
+      color: var(--primary-orange);
+    }
+
+    .profile-info {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #1a2436;
+      border-radius: 8px;
+    }
+
+    body.light-theme .profile-info {
+      background: #e5e7eb;
+    }
+
+    .friends-list, .friend-requests-list, .sent-requests-list {
+      margin-top: 1.5rem;
+    }
+
+    .friends-list-item, .request-list-item {
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e293b;
+      transition: all 0.3s ease;
+    }
+
+    .friends-list-item:hover, .request-list-item:hover {
+      background: #2d3b55;
+      transform: translateY(-2px);
+    }
+
+    .notification-badge {
+      background: #f87171;
+      color: #ffffff;
+      border-radius: 50%;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+      margin-left: 0.75rem;
+      animation: pulse 1.5s infinite;
+    }
+
+    #messageSearch {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideInMessage {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     @media (max-width: 768px) {
-      #authContainer, #chatContainer, #conversationsContainer {
+      #authContainer, #chatContainer, #conversationsContainer, #profileContainer {
         width: 95%;
-        padding: 0.5rem;
+        padding: 1rem;
       }
       #messages {
-        height: 60vh;
+        height: 50vh;
       }
       .inputBox {
         flex-direction: column;
@@ -219,9 +508,10 @@
         width: 100%;
       }
       h1 {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
       }
     }
+
     @media (max-width: 576px) {
       .message {
         font-size: 0.9rem;
@@ -229,19 +519,26 @@
       .conversation {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.5rem;
       }
       .unread-count {
-        margin-top: 0.3rem;
+        margin-top: 0.5rem;
       }
     }
   </style>
 </head>
 <body>
   <h1>qube Chat</h1>
+  <!-- <button class="theme-toggle" onclick="toggleTheme()">
+    <i class="fas fa-adjust"></i>
+  </button> -->
   <div id="userStatus">
     <span id="statusText">Not logged in</span>
     <button id="logoutBtn" class="btn hidden text-light" onclick="logout()">
       <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+    <button id="profileBtn" class="btn hidden text-light" onclick="showProfile(currentUser.uid)">
+      <i class="fas fa-user"></i> My Profile <span id="requestNotification" class="notification-badge hidden">0</span>
     </button>
   </div>
 
@@ -277,6 +574,13 @@
     </div>
   </div>
 
+  <div id="profileContainer" class="hidden">
+    <button class="btn text-light" onclick="showConversations()">
+      <i class="fas fa-arrow-left"></i> Back to Conversations
+    </button>
+    <div id="profileContent"></div>
+  </div>
+
   <div id="conversationsContainer" class="hidden">
     <ul class="nav nav-tabs">
       <li class="nav-item">
@@ -301,13 +605,14 @@
 
   <div id="chatContainer" class="hidden">
     <button class="btn text-light" id="backToConversations" onclick="showConversations()">
-      <i class="fas fa-arrow-left"></i> Back to conversations
+      <i class="fas fa-arrow-left"></i> Back to Conversations
     </button>
     <div id="chatHeader">
       <h2 id="chatWithUser"></h2>
       <div id="userOnlineStatus"></div>
       <div id="typingIndicator"></div>
     </div>
+    <input type="text" class="form-control" id="messageSearch" placeholder="Search messages..." oninput="searchMessages()">
     <div id="messages"></div>
     <button class="btn text-light" onclick="loadMoreMessages()">
       <i class="fas fa-sync"></i> Load More
@@ -344,12 +649,29 @@
     let currentUser = null;
     let usersRef = db.ref("users");
     let conversationsRef = db.ref("conversations");
+    let friendRequestsRef = db.ref("friend_requests");
+    let friendsRef = db.ref("friends");
     let userStatusRef = db.ref("status");
     let currentChatId = null;
     let currentRecipient = null;
     let userPresenceRef = null;
     let lastMessageKey = null;
     let typingTimeout;
+    let replyToMessage = null;
+
+    // تحميل الثيم المحفوظ
+    window.onload = () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+      }
+    };
+
+    // تبديل الثيم
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+    }
 
     // Check auth state
     auth.onAuthStateChanged((user) => {
@@ -357,11 +679,15 @@
         currentUser = user;
         setupPresence();
         updateUIForLoggedInUser();
+        updateFriendRequestNotification();
+        setupMessageNotifications();
       } else {
         if (userPresenceRef) {
           userPresenceRef.off();
         }
         currentUser = null;
+        currentChatId = null;
+        currentRecipient = null;
         updateUIForLoggedOutUser();
       }
     });
@@ -389,6 +715,7 @@
       document.getElementById("authContainer").classList.add("hidden");
       document.getElementById("conversationsContainer").classList.remove("hidden");
       document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("profileBtn").classList.remove("hidden");
       document.getElementById("statusText").textContent = `Logged in as ${currentUser.displayName || currentUser.email}`;
       
       usersRef.child(currentUser.uid).once('value', (snapshot) => {
@@ -396,6 +723,7 @@
           usersRef.child(currentUser.uid).set({
             username: currentUser.displayName || currentUser.email.split('@')[0],
             email: currentUser.email,
+            joinDate: firebase.database.ServerValue.TIMESTAMP,
             lastSeen: firebase.database.ServerValue.TIMESTAMP
           });
         }
@@ -408,7 +736,9 @@
       document.getElementById("authContainer").classList.remove("hidden");
       document.getElementById("conversationsContainer").classList.add("hidden");
       document.getElementById("chatContainer").classList.add("hidden");
+;      document.getElementById("profileContainer").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("profileBtn").classList.add("hidden");
       document.getElementById("statusText").textContent = "Not logged in";
     }
 
@@ -459,7 +789,7 @@
       errorElement.textContent = "";
       
       auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+        .then(() => {
           // Login successful
         })
         .catch((error) => {
@@ -485,14 +815,13 @@
       
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-          // Update user profile
           return userCredential.user.updateProfile({
             displayName: username
           }).then(() => {
-            // Save user data to database
             return usersRef.child(userCredential.user.uid).set({
               username: username,
               email: email,
+              joinDate: firebase.database.ServerValue.TIMESTAMP,
               lastSeen: firebase.database.ServerValue.TIMESTAMP
             });
           });
@@ -508,15 +837,21 @@
     }
 
     function logout() {
+      if (currentChatId) {
+        db.ref(`messages/${currentChatId}`).off();
+        if (currentRecipient) {
+          db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
+        }
+      }
       auth.signOut();
     }
 
     function loadConversations() {
+      const conversationsList = document.getElementById('conversationsList');
+      conversationsList.innerHTML = '';
+      
       conversationsRef.orderByChild(`participants/${currentUser.uid}`).equalTo(true).on('value', (snapshot) => {
         const conversations = snapshot.val() || {};
-        const conversationsList = document.getElementById('conversationsList');
-        conversationsList.innerHTML = '';
-        
         Object.keys(conversations).forEach(conversationId => {
           const conversation = conversations[conversationId];
           const otherUserId = Object.keys(conversation.participants).find(uid => uid !== currentUser.uid);
@@ -530,14 +865,20 @@
               const conversationDiv = document.createElement('div');
               conversationDiv.className = 'conversation';
               conversationDiv.innerHTML = `
+                <i class="fas fa-user-circle fa-2x" style="margin-right: 0.75rem;"></i>
                 <div class="conversation-info">
                   <strong><i class="fas fa-user"></i> ${user.username}</strong>
                   <span class="conversation-last-message">${lastMessage.text || 'No messages yet'}</span>
                 </div>
                 ${unreadCount > 0 ? `<span class="unread-count">${unreadCount}</span>` : ''}
+                <button class="btn text-light btn-sm profile-btn" onclick="showProfile('${otherUserId}')"><i class="fas fa-user"></i></button>
               `;
               
-              conversationDiv.onclick = () => openChat(conversationId, otherUserId, user.username);
+              conversationDiv.onclick = (e) => {
+                if (!e.target.classList.contains('profile-btn')) {
+                  openChat(conversationId, otherUserId, user.username);
+                }
+              };
               
               conversationsList.appendChild(conversationDiv);
             });
@@ -549,7 +890,9 @@
     function openChat(conversationId, recipientId, recipientName) {
       if (currentChatId) {
         db.ref(`messages/${currentChatId}`).off();
-        db.ref(`conversations/${currentChatId}/typing/${currentRecipient?.id}`).off();
+        if (currentRecipient) {
+          db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
+        }
       }
       
       currentChatId = conversationId;
@@ -557,12 +900,15 @@
       
       document.getElementById('conversationsContainer').classList.add('hidden');
       document.getElementById('chatContainer').classList.remove('hidden');
+      document.getElementById('profileContainer').classList.add('hidden');
       document.getElementById('chatWithUser').textContent = `Chat with ${recipientName}`;
       
       markMessagesAsRead();
       loadMessages();
       setupOnlineStatus(recipientId);
       setupTypingIndicator();
+      document.getElementById('messageSearch').value = '';
+      replyToMessage = null;
     }
 
     function setupOnlineStatus(userId) {
@@ -601,23 +947,51 @@
       });
     }
 
-    function showConversations() {
-      document.getElementById('conversationsContainer').classList.remove('hidden');
-      document.getElementById('chatContainer').classList.add('hidden');
-      if (currentChatId) {
-        db.ref(`messages/${currentChatId}`).off();
-        db.ref(`conversations/${currentChatId}/typing/${currentRecipient?.id}`).off();
-      }
-      currentChatId = null;
-      currentRecipient = null;
+    function setupMessageNotifications() {
+      conversationsRef.orderByChild(`participants/${currentUser.uid}`).equalTo(true).on('child_changed', (snapshot) => {
+        const conversation = snapshot.val();
+        const unreadCount = conversation.unreadCounts && conversation.unreadCounts[currentUser.uid] || 0;
+        if (unreadCount > 0 && snapshot.key !== currentChatId) {
+          showNotification(`New message in conversation with ${currentRecipient ? currentRecipient.name : 'someone'}`);
+        }
+      });
     }
 
-    function loadMessages(limit = 50) {
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.className = 'success-message';
+      notification.style.position = 'fixed';
+      notification.style.top = '20px';
+      notification.style.right = '20px';
+      notification.style.zIndex = '1000';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    function showConversations() {
+      if (currentChatId) {
+        db.ref(`messages/${currentChatId}`).off();
+        if (currentRecipient) {
+          db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
+        }
+      }
+      document.getElementById('conversationsContainer').classList.remove('hidden');
+      document.getElementById('chatContainer').classList.add('hidden');
+      document.getElementById('profileContainer').classList.add('hidden');
+      currentChatId = null;
+      currentRecipient = null;
+      loadConversations();
+    }
+
+    function loadMessages() {
       document.getElementById('messages').innerHTML = '';
       
       db.ref(`messages/${currentChatId}`)
         .orderByChild('time')
-        .limitToLast(limit)
+        .limitToLast(50)
         .on('child_added', (snapshot) => {
           const msg = snapshot.val();
           displayMessage(msg, snapshot.key);
@@ -661,17 +1035,51 @@
       const readStatus = isCurrentUser ? 
         (msg.read ? '<span class="message-status">✓✓</span>' : '<span class="message-status">✓</span>') : '';
       
+      let quotedHTML = '';
+      if (msg.replyTo) {
+        quotedHTML = `<div class="quoted-message"><strong>Replying to:</strong> ${msg.replyTo.text}</div>`;
+      }
+
+      const likes = msg.likes ? Object.keys(msg.likes).length : 0;
+      const likedByCurrentUser = msg.likes && msg.likes[currentUser.uid];
+
       msgDiv.innerHTML = `
+        ${quotedHTML}
         <strong><i class="fas fa-user"></i> ${msg.username}</strong> (${timestamp}): 
         ${msg.text}
         ${readStatus}
-        ${isCurrentUser && (Date.now() - msg.time) < 5 * 60 * 1000 ? 
-          `<button class="btn text-light btn-sm" onclick="editMessage('${messageId}', '${msg.text || ''}')"><i class="fas fa-edit"></i></button>
-           <button class="btn text-light btn-sm" onclick="deleteMessage('${messageId}')"><i class="fas fa-trash"></i></button>` : ''}
+        <div class="message-actions">
+          <button class="btn text-light btn-sm" onclick="likeMessage('${messageId}')">
+            <i class="fas fa-heart ${likedByCurrentUser ? 'text-danger' : ''}"></i> ${likes}
+          </button>
+          <button class="btn text-light btn-sm" onclick="replyTo('${messageId}', '${msg.text}', '${msg.username}')">
+            <i class="fas fa-reply"></i>
+          </button>
+          ${isCurrentUser && (Date.now() - msg.time) < 5 * 60 * 1000 ? 
+            `<button class="btn text-light btn-sm" onclick="editMessage('${messageId}', '${msg.text || ''}')"><i class="fas fa-edit"></i></button>
+             <button class="btn text-light btn-sm" onclick="deleteMessage('${messageId}')"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
       `;
       
       document.getElementById("messages").appendChild(msgDiv);
       document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    }
+
+    function likeMessage(messageId) {
+      const likeRef = db.ref(`messages/${currentChatId}/${messageId}/likes/${currentUser.uid}`);
+      likeRef.once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          likeRef.remove();
+        } else {
+          likeRef.set(true);
+        }
+      });
+    }
+
+    function replyTo(messageId, text, username) {
+      replyToMessage = { id: messageId, text: text, username: username };
+      document.getElementById('msgInput').focus();
+      document.getElementById('msgInput').placeholder = `Replying to ${username}...`;
     }
 
     function editMessage(messageId, currentText) {
@@ -743,6 +1151,14 @@
         read: false
       };
       
+      if (replyToMessage) {
+        message.replyTo = {
+          id: replyToMessage.id,
+          text: replyToMessage.text,
+          username: replyToMessage.username
+        };
+      }
+      
       db.ref(`messages/${currentChatId}`).push(message);
       
       db.ref(`conversations/${currentChatId}/lastMessage`).set({
@@ -754,6 +1170,8 @@
         .transaction((current) => (current || 0) + 1);
       
       document.getElementById("msgInput").value = "";
+      document.getElementById("msgInput").placeholder = "Type a message...";
+      replyToMessage = null;
     }
 
     function markMessagesAsRead() {
@@ -781,21 +1199,79 @@
         resultsContainer.innerHTML = "";
         const users = snapshot.val();
         
-        for (const userId in users) {
-          if (userId !== currentUser.uid && users[userId].username.toLowerCase().includes(searchTerm)) {
+        Promise.all(Object.keys(users).map(userId => {
+          if (userId === currentUser.uid) return Promise.resolve(null);
+          if (!users[userId].username.toLowerCase().includes(searchTerm)) return Promise.resolve(null);
+          
+          return Promise.all([
+            friendRequestsRef.orderByChild('senderId').equalTo(currentUser.uid).once('value'),
+            friendRequestsRef.orderByChild('recipientId').equalTo(currentUser.uid).once('value'),
+            friendsRef.child(currentUser.uid).child(userId).once('value')
+          ]).then(([sentRequestsSnapshot, receivedRequestsSnapshot, friendSnapshot]) => {
+            const sentRequests = sentRequestsSnapshot.val() || {};
+            const receivedRequests = receivedRequestsSnapshot.val() || {};
+            const isFriend = friendSnapshot.exists();
+            
+            let friendButton = `<button class="btn text-light btn-sm friend-request-btn" onclick="sendFriendRequest('${userId}')"><i class="fas fa-user-plus"></i> Add Friend</button>`;
+            
+            for (const requestId in sentRequests) {
+              if (sentRequests[requestId].recipientId === userId && sentRequests[requestId].status === 'pending') {
+                friendButton = `<button class="btn text-light btn-sm friend-request-btn disabled"><i class="fas fa-hourglass"></i> Request Sent</button>`;
+                break;
+              }
+            }
+            
+            for (const requestId in receivedRequests) {
+              if (receivedRequests[requestId].senderId === userId && receivedRequests[requestId].status === 'pending') {
+                friendButton = `<button class="btn text-light btn-sm friend-request-btn disabled"><i class="fas fa-hourglass"></i> Pending Request</button>`;
+                break;
+              }
+            }
+            
+            if (isFriend) {
+              friendButton = `<button class="btn text-light btn-sm friend-request-btn disabled"><i class="fas fa-check"></i> Friend</button>`;
+            }
+            
             const userDiv = document.createElement("div");
             userDiv.classList.add("conversation");
             userDiv.innerHTML = `
+              <i class="fas fa-user-circle fa-2x" style="margin-right: 0.75rem;"></i>
               <div class="conversation-info">
                 <strong><i class="fas fa-user"></i> ${users[userId].username}</strong>
                 <span class="conversation-last-message">Click to start conversation</span>
               </div>
+              <div>
+                ${friendButton}
+                <button class="btn text-light btn-sm profile-btn" onclick="showProfile('${userId}')"><i class="fas fa-user"></i> Profile</button>
+              </div>
             `;
-            userDiv.onclick = () => startNewConversation(userId, users[userId].username);
+            userDiv.onclick = (e) => {
+              if (!e.target.classList.contains('friend-request-btn') && !e.target.classList.contains('profile-btn')) {
+                startNewConversation(userId, users[userId].username);
+              }
+            };
             resultsContainer.appendChild(userDiv);
-          }
-        }
+            return userDiv;
+          });
+        })).then(() => {});
       });
+    }
+
+    function searchMessages() {
+      const searchTerm = document.getElementById('messageSearch').value.toLowerCase();
+      if (!currentChatId) return;
+
+      db.ref(`messages/${currentChatId}`)
+        .orderByChild('time')
+        .once('value', (snapshot) => {
+          document.getElementById('messages').innerHTML = '';
+          snapshot.forEach((childSnapshot) => {
+            const msg = childSnapshot.val();
+            if (msg.text.toLowerCase().includes(searchTerm) || searchTerm === '') {
+              displayMessage(msg, childSnapshot.key);
+            }
+          });
+        });
     }
 
     function startNewConversation(userId, username) {
@@ -820,6 +1296,152 @@
           });
         }
       });
+    }
+
+    function sendFriendRequest(recipientId) {
+      friendRequestsRef.push({
+        senderId: currentUser.uid,
+        recipientId: recipientId,
+        status: 'pending',
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      }).then(() => {
+        searchUsers();
+        updateFriendRequestNotification();
+      });
+    }
+
+    function updateFriendRequestNotification() {
+      friendRequestsRef.orderByChild('recipientId').equalTo(currentUser.uid).on('value', (snapshot) => {
+        const requests = snapshot.val() || {};
+        const pendingCount = Object.values(requests).filter(req => req.status === 'pending').length;
+        const notificationBadge = document.getElementById('requestNotification');
+        notificationBadge.textContent = pendingCount;
+        notificationBadge.classList.toggle('hidden', pendingCount === 0);
+      });
+    }
+
+    function showProfile(userId) {
+      if (currentChatId) {
+        db.ref(`messages/${currentChatId}`).off();
+        if (currentRecipient) {
+          db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
+        }
+      }
+      document.getElementById('conversationsContainer').classList.add('hidden');
+      document.getElementById('chatContainer').classList.add('hidden');
+      document.getElementById('profileContainer').classList.remove('hidden');
+      
+      usersRef.child(userId).once('value', (snapshot) => {
+        const user = snapshot.val();
+        const joinDate = new Date(user.joinDate).toLocaleString();
+        const lastSeen = new Date(user.lastSeen).toLocaleString();
+        
+        friendsRef.child(userId).once('value', (friendsSnapshot) => {
+          const friends = friendsSnapshot.val() || {};
+          let friendsHTML = '';
+          
+          Promise.all(Object.keys(friends).map(friendId => {
+            return usersRef.child(friendId).once('value').then(friendSnapshot => {
+              const friend = friendSnapshot.val();
+              return `<div class="friends-list-item">
+                <span><i class="fas fa-user"></i> ${friend.username}</span>
+                <button class="btn text-light btn-sm" onclick="startNewConversation('${friendId}', '${friend.username}')"><i class="fas fa-comment"></i> Message</button>
+              </div>`;
+            });
+          })).then(friendsArray => {
+            friendsHTML = friendsArray.join('');
+            
+            const profileContent = document.getElementById('profileContent');
+            profileContent.innerHTML = `
+              <h2>Profile: ${user.username}</h2>
+              <div class="profile-info">
+                <i class="fas fa-user-circle fa-2x" style="margin-bottom: 0.5rem;"></i>
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Join Date:</strong> ${joinDate}</p>
+                <p><strong>Last Seen:</strong> ${lastSeen}</p>
+              </div>
+              <h3>Friends</h3>
+              <div class="friends-list">${friendsHTML || 'No friends yet'}</div>
+            `;
+            
+            const incomingRequestsContainer = document.createElement('div');
+            incomingRequestsContainer.className = 'friend-requests-list';
+            incomingRequestsContainer.innerHTML = '<h3>Incoming Friend Requests</h3>';
+            
+            friendRequestsRef.orderByChild('recipientId').equalTo(userId).once('value', (snapshot) => {
+              const requests = snapshot.val() || {};
+              Object.keys(requests).forEach(requestId => {
+                if (requests[requestId].status === 'pending' && requests[requestId].recipientId === currentUser.uid) {
+                  usersRef.child(requests[requestId].senderId).once('value', (senderSnapshot) => {
+                    const sender = senderSnapshot.val();
+                    const requestDiv = document.createElement('div');
+                    requestDiv.className = 'request-list-item';
+                    requestDiv.innerHTML = `
+                      <span><i class="fas fa-user"></i> ${sender.username}</span>
+                      <div>
+                        <button class="btn text-light btn-sm" onclick="acceptFriendRequest('${requestId}', '${requests[requestId].senderId}')"><i class="fas fa-check"></i> Accept</button>
+                        <button class="btn text-light btn-sm" onclick="rejectFriendRequest('${requestId}')"><i class="fas fa-times"></i> Reject</button>
+                      </div>
+                    `;
+                    incomingRequestsContainer.appendChild(requestDiv);
+                  });
+                }
+              });
+              if (Object.keys(requests).length === 0 || !Object.values(requests).some(req => req.status === 'pending' && req.recipientId === currentUser.uid)) {
+                incomingRequestsContainer.innerHTML += '<p>No pending requests</p>';
+              }
+              profileContent.appendChild(incomingRequestsContainer);
+            });
+            
+            const sentRequestsContainer = document.createElement('div');
+            sentRequestsContainer.className = 'sent-requests-list';
+            sentRequestsContainer.innerHTML = '<h3>Sent Friend Requests</h3>';
+            
+            friendRequestsRef.orderByChild('senderId').equalTo(userId).once('value', (snapshot) => {
+              const sentRequests = snapshot.val() || {};
+              Object.keys(sentRequests).forEach(requestId => {
+                usersRef.child(sentRequests[requestId].recipientId).once('value', (recipientSnapshot) => {
+                  const recipient = recipientSnapshot.val();
+                  const requestDiv = document.createElement('div');
+                  requestDiv.className = 'request-list-item';
+                  requestDiv.innerHTML = `
+                    <span><i class="fas fa-user"></i> ${recipient.username} (${sentRequests[requestId].status})</span>
+                    ${sentRequests[requestId].status === 'pending' ? 
+                      `<button class="btn text-light btn-sm" onclick="cancelFriendRequest('${requestId}')"><i class="fas fa-times"></i> Cancel</button>` : ''}
+                  `;
+                  sentRequestsContainer.appendChild(requestDiv);
+                });
+              });
+              if (Object.keys(sentRequests).length === 0) {
+                sentRequestsContainer.innerHTML += '<p>No sent requests</p>';
+              }
+              profileContent.appendChild(sentRequestsContainer);
+            });
+          });
+        });
+      });
+    }
+
+    function acceptFriendRequest(requestId, senderId) {
+      friendRequestsRef.child(requestId).update({ status: 'accepted' }).then(() => {
+        friendsRef.child(currentUser.uid).child(senderId).set(true);
+        friendsRef.child(senderId).child(currentUser.uid).set(true);
+        friendRequestsRef.child(requestId).remove();
+        showProfile(currentUser.uid);
+        updateFriendRequestNotification();
+      });
+    }
+
+    function rejectFriendRequest(requestId) {
+      friendRequestsRef.child(requestId).remove();
+      showProfile(currentUser.uid);
+      updateFriendRequestNotification();
+    }
+
+    function cancelFriendRequest(requestId) {
+      friendRequestsRef.child(requestId).remove();
+      showProfile(currentUser.uid);
+      searchUsers();
     }
   </script>
 </body>
