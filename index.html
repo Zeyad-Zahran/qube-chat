@@ -38,7 +38,7 @@
       --text-dark: #111827;
     }
 
-    body.light-theme .message {
+    body.light-theme .message, body.light-theme .typing-indicator {
       background: #e5e7eb;
       color: var(--text-dark);
     }
@@ -130,6 +130,7 @@
       border: 1px solid var(--border-color);
       scrollbar-width: thin;
       scrollbar-color: var(--primary-orange) var(--card-bg);
+      position: relative;
     }
 
     body.light-theme #messages {
@@ -204,6 +205,50 @@
       border-left: 3px solid var(--primary-orange);
       font-size: 0.85rem;
       border-radius: 4px;
+    }
+
+    .typing-indicator {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 12px 12px 12px 2px;
+      background: #2d3b55;
+      color: var(--text-light);
+      margin-right: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      animation: slideInMessage 0.3s ease-out;
+    }
+
+    body.light-theme .typing-indicator {
+      background: #e5e7eb;
+      color: var(--text-dark);
+    }
+
+    .typing-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--primary-orange);
+      border-radius: 50%;
+      animation: bounce 0.6s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
     }
 
     input, button, select {
@@ -380,13 +425,6 @@
       color: #ffffff;
     }
 
-    #typingIndicator {
-      font-size: 0.85rem;
-      color: #94a3b8;
-      font-style: italic;
-      animation: pulse 1.5s infinite;
-    }
-
     .auth-form {
       padding: 1.5rem;
     }
@@ -513,7 +551,7 @@
     }
 
     @media (max-width: 576px) {
-      .message {
+      .message, .typing-indicator {
         font-size: 0.9rem;
       }
       .conversation {
@@ -529,9 +567,6 @@
 </head>
 <body>
   <h1>qube Chat</h1>
-  <!-- <button class="theme-toggle" onclick="toggleTheme()">
-    <i class="fas fa-adjust"></i>
-  </button> -->
   <div id="userStatus">
     <span id="statusText">Not logged in</span>
     <button id="logoutBtn" class="btn hidden text-light" onclick="logout()">
@@ -610,7 +645,6 @@
     <div id="chatHeader">
       <h2 id="chatWithUser"></h2>
       <div id="userOnlineStatus"></div>
-      <div id="typingIndicator"></div>
     </div>
     <input type="text" class="form-control" id="messageSearch" placeholder="Search messages..." oninput="searchMessages()">
     <div id="messages"></div>
@@ -658,6 +692,7 @@
     let lastMessageKey = null;
     let typingTimeout;
     let replyToMessage = null;
+    let typingIndicator = null;
 
     // تحميل الثيم المحفوظ
     window.onload = () => {
@@ -736,7 +771,7 @@
       document.getElementById("authContainer").classList.remove("hidden");
       document.getElementById("conversationsContainer").classList.add("hidden");
       document.getElementById("chatContainer").classList.add("hidden");
-;      document.getElementById("profileContainer").classList.add("hidden");
+      document.getElementById("profileContainer").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
       document.getElementById("profileBtn").classList.add("hidden");
       document.getElementById("statusText").textContent = "Not logged in";
@@ -842,6 +877,10 @@
         if (currentRecipient) {
           db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
         }
+        if (typingIndicator) {
+          typingIndicator.remove();
+          typingIndicator = null;
+        }
       }
       auth.signOut();
     }
@@ -893,6 +932,10 @@
         if (currentRecipient) {
           db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
         }
+        if (typingIndicator) {
+          typingIndicator.remove();
+          typingIndicator = null;
+        }
       }
       
       currentChatId = conversationId;
@@ -931,6 +974,8 @@
 
     function setupTypingIndicator() {
       const msgInput = document.getElementById('msgInput');
+      const messagesContainer = document.getElementById('messages');
+      
       if (msgInput) {
         msgInput.addEventListener('input', () => {
           db.ref(`conversations/${currentChatId}/typing/${currentUser.uid}`).set(true);
@@ -943,7 +988,20 @@
 
       db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).on('value', (snapshot) => {
         const isTyping = snapshot.val();
-        document.getElementById('typingIndicator').textContent = isTyping ? `${currentRecipient.name} is typing...` : '';
+        if (isTyping && !typingIndicator) {
+          typingIndicator = document.createElement('div');
+          typingIndicator.className = 'typing-indicator';
+          typingIndicator.innerHTML = `
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          `;
+          messagesContainer.appendChild(typingIndicator);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        } else if (!isTyping && typingIndicator) {
+          typingIndicator.remove();
+          typingIndicator = null;
+        }
       });
     }
 
@@ -976,6 +1034,10 @@
         db.ref(`messages/${currentChatId}`).off();
         if (currentRecipient) {
           db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
+        }
+        if (typingIndicator) {
+          typingIndicator.remove();
+          typingIndicator = null;
         }
       }
       document.getElementById('conversationsContainer').classList.remove('hidden');
@@ -1061,8 +1123,9 @@
         </div>
       `;
       
-      document.getElementById("messages").appendChild(msgDiv);
-      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      const messagesContainer = document.getElementById("messages");
+      messagesContainer.appendChild(msgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
     function likeMessage(messageId) {
@@ -1264,13 +1327,19 @@
       db.ref(`messages/${currentChatId}`)
         .orderByChild('time')
         .once('value', (snapshot) => {
-          document.getElementById('messages').innerHTML = '';
+          const messagesContainer = document.getElementById('messages');
+          messagesContainer.innerHTML = '';
+          if (typingIndicator) {
+            typingIndicator.remove();
+            typingIndicator = null;
+          }
           snapshot.forEach((childSnapshot) => {
             const msg = childSnapshot.val();
             if (msg.text.toLowerCase().includes(searchTerm) || searchTerm === '') {
               displayMessage(msg, childSnapshot.key);
             }
           });
+          setupTypingIndicator(); // Re-attach typing indicator after search
         });
     }
 
@@ -1325,6 +1394,10 @@
         db.ref(`messages/${currentChatId}`).off();
         if (currentRecipient) {
           db.ref(`conversations/${currentChatId}/typing/${currentRecipient.id}`).off();
+        }
+        if (typingIndicator) {
+          typingIndicator.remove();
+          typingIndicator = null;
         }
       }
       document.getElementById('conversationsContainer').classList.add('hidden');
